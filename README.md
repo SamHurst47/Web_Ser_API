@@ -36,7 +36,7 @@ deactivate
 ```
 uvicorn app.main:app --reload
 ```
-## 6. Open in Browser 
+## 7. Open in Browser 
 Normal Mode
 ```
 http://127.0.0.1:8000
