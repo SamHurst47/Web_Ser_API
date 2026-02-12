@@ -80,8 +80,8 @@ For 80–100, deployment should be robust, stable, and secure.
 
 ### 1.4 Creativity and GenAI Usage
 
-80–89: High‑level use of GenAI for creativity and solution exploration (not just debugging). citeturn1search1_page14
-90–100: GenAI is used creatively to explore alternatives, cutting-edge designs, or re‑imagine solutions. citeturn1search1_page15
+80–89: High‑level use of GenAI for creativity and solution exploration (not just debugging).
+90–100: GenAI is used creatively to explore alternatives, cutting-edge designs, or re‑imagine solutions.
 
 (Created using GEN AI, then refined)
 
