@@ -1,9 +1,11 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import update, delete, and_, select, true, func
 from models import LapSummary
 from schemas.lap_summary import (
     LapSummaryCreate,
     LapSummaryUpdate,
+    LapFilter,
 )
 from services.api_converter import get_openf1_session_keys
 
@@ -40,26 +42,75 @@ def list_lap_summaries(
 
     return q.all()
 
-def get_lap_summary(db: Session, lap_id: int) -> Optional[LapSummary]:
-    return db.query(LapSummary).get(lap_id)
+def update_lap_summaries(
+    db: Session,
+    session_key: Optional[int] = None,
+    meeting_key: Optional[int] = None,
+    year: Optional[int] = None,
+    location: Optional[str] = None,
+    session_name: Optional[str] = None,
+    driver_number: Optional[int] = None,
+    lap_update: LapSummaryUpdate = None,
+) -> List[LapSummary]:
+    if year is not None and location is not None and session_name is not None:
+        keys = get_openf1_session_keys(year, location, session_name)
+        session_key = keys["session_key"]
 
-def update_lap_summary(
-    db: Session, lap_id: int, lap_update: LapSummaryUpdate
-) -> Optional[LapSummary]:
-    lap = db.query(LapSummary).get(lap_id)
-    if not lap:
-        return None
-    data = lap_update.dict(exclude_unset=True)
-    for field, value in data.items():
-        setattr(lap, field, value)
-    db.commit()
-    db.refresh(lap)
-    return lap
+    conditions = []
+    if session_key is not None:
+        conditions.append(LapSummary.session_key == session_key)
+    if driver_number is not None:
+        conditions.append(LapSummary.driver_number == driver_number)
+    
+    if not conditions:
+        return []
 
-def delete_lap_summary(db: Session, lap_id: int) -> bool:
-    lap = db.query(LapSummary).get(lap_id)
-    if not lap:
-        return False
-    db.delete(lap)
+    # Bulk UPDATE without RETURNING (SQLite-compatible)
+    stmt = (
+        update(LapSummary)
+        .where(and_(*conditions))
+        .values(**lap_update.dict(exclude_unset=True))
+        .execution_options(synchronize_session=False)
+    )
+    db.execute(stmt)
     db.commit()
-    return True
+
+    # Query updated rows back
+    q = db.query(LapSummary)
+    for cond in conditions:
+        q = q.filter(cond)
+    return q.all()
+
+def delete_lap_summaries(
+    db: Session,
+    session_key: Optional[int] = None,
+    meeting_key: Optional[int] = None,
+    year: Optional[int] = None,
+    location: Optional[str] = None,
+    session_name: Optional[str] = None,
+    driver_number: Optional[int] = None,
+) -> int:
+    # Resolve session_key if year+location+session_name provided
+    if year is not None and location is not None and session_name is not None:
+        keys = get_openf1_session_keys(year, location, session_name)
+        session_key = keys["session_key"]
+
+    # Build filter conditions
+    conditions = []
+    if session_key is not None:
+        conditions.append(LapSummary.session_key == session_key)
+    if driver_number is not None:
+        conditions.append(LapSummary.driver_number == driver_number)
+    
+    if not conditions:
+        return 0  # No filters = nothing deleted
+
+    # Bulk DELETE (SQLite-compatible)
+    stmt = (
+        delete(LapSummary)
+        .where(and_(*conditions))
+        .execution_options(synchronize_session=False)
+    )
+    result = db.execute(stmt)
+    db.commit()
+    return result.rowcount

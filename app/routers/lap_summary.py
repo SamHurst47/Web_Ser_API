@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 import requests  
@@ -27,8 +27,12 @@ def import_lap_summaries(
     db: Session = Depends(get_db),
 ):
     # Convert using function
-    if year and location and session_name:
+    if year is not None and location is not None and session_name is not None:
         keys = get_openf1_session_keys(year, location, session_name)
+        if keys is None:
+            raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, 
+            detail="Invalid session input: No matching session found for provided year/location/session_name")
         session_key = keys["session_key"]
     elif not session_key:
         raise HTTPException(400, "Provide session_key OR (year+location+session_name)")
@@ -80,26 +84,35 @@ def list_lap_summaries(
         db, session_key, None, year, location, session_name, driver_number
     )
 
-# get, patch, delete unchanged...
-@router.get("/{lap_id}", response_model=LapSummaryRead)
-def get_lap_summary(lap_id: int, db: Session = Depends(get_db)):
-    lap = lap_service.get_lap_summary(db, lap_id)
-    if not lap:
-        raise HTTPException(status_code=404, detail="Lap summary not found")
-    return lap
-
-@router.patch("/{lap_id}", response_model=LapSummaryRead)
-def update_lap_summary(
-    lap_id: int, lap_update: LapSummaryUpdate, db: Session = Depends(get_db)
+@router.put("", response_model=List[LapSummaryRead])
+def update_lap_summaries(
+    driver_number: int,
+    lap_update: LapSummaryUpdate,
+    session_key: Optional[int] = Query(None),
+    year: Optional[int] = Query(None),
+    location: Optional[str] = Query(None),
+    session_name: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
 ):
-    lap = lap_service.update_lap_summary(db, lap_id, lap_update)
-    if not lap:
-        raise HTTPException(status_code=404, detail="Lap summary not found")
-    return lap
+    updated = lap_service.update_lap_summaries(
+        db, session_key, None, year, location, session_name, driver_number, lap_update
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="No laps matched filters")
+    return updated
 
-@router.delete("/{lap_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_lap_summary(lap_id: int, db: Session = Depends(get_db)):
-    ok = lap_service.delete_lap_summary(db, lap_id)
-    if not ok:
-        raise HTTPException(status_code=404, detail="Lap summary not found")
+@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+def delete_lap_summaries(
+    driver_number: int,
+    session_key: Optional[int] = Query(None),
+    year: Optional[int] = Query(None),
+    location: Optional[str] = Query(None),
+    session_name: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    count = lap_service.delete_lap_summaries(
+        db, session_key, None, year, location, session_name, driver_number
+    )
+    if count == 0:
+        raise HTTPException(status_code=404, detail="No laps matched filters")
     return None

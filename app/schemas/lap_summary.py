@@ -1,6 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field
-
+from fastapi import Query
 from typing import Optional
 
 class LapSummaryBase(BaseModel):
@@ -40,3 +40,10 @@ class LapSummaryRead(LapSummaryBase):
 
     class Config:
         orm_mode = True
+
+class LapFilter(BaseModel):
+    year: Optional[int] = Query(None)  
+    location: Optional[str] = Query(None)  
+    session_name: Optional[str] = Query(None) 
+    driver: Optional[int] = Query(None)  
+
