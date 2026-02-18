@@ -34,7 +34,7 @@ deactivate
 ## 6. To Run
 
 ```
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 ## 7. Open in Browser 
 Normal Mode
