@@ -10,7 +10,7 @@ from schemas.lap_summary import (
 from services.api_converter import get_openf1_session_keys
 
 def create_lap_summary(db: Session, lap_in: LapSummaryCreate) -> LapSummary:
-    lap = LapSummary(**lap_in.dict())
+    lap = LapSummary(**lap_in.model_dump())
     db.add(lap)
     db.commit()
     db.refresh(lap)

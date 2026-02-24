@@ -9,9 +9,8 @@ exceptiongroup==1.3.1
 fastapi==0.128.8
 h11==0.16.0
 httpcore==1.0.9
-httpx==0.28.1
+httpx
 idna==3.11
-psycopg2-binary
 pydantic==2.12.5
 pydantic_core==2.41.5
 python-dotenv==1.2.1
