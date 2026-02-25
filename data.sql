@@ -1,1 +1,3 @@
-SELECT * FROM lap_summaries;
+ALTER TABLE users 
+ADD COLUMN email VARCHAR(255) NOT NULL UNIQUE,
+ADD COLUMN hashed_password VARCHAR(255) NOT NULL;
