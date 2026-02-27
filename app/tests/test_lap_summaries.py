@@ -33,14 +33,21 @@ def test_import_from_openf1(mock_requests_get, client):
 # We patch the lap_service so we don't have to build a highly complex mock database
 @patch("routers.lap_summary.lap_service.update_lap_summaries")
 def test_update_lap_summaries(mock_update, client):
-    # Tell the mock service to return a dummy list so the router doesn't throw a 404
-    mock_update.return_value = [{"id": 1, "driver_number": 1, "lap_number": 1}]
-    
+    # We added owner_id and session_key to satisfy the Pydantic schema!
+    mock_update.return_value = [{
+        "id": 1, 
+        "owner_id": 1,
+        "session_key": 1234,
+        "driver_number": 1, 
+        "lap_number": 1
+    }]
+
     # A dummy payload representing LapSummaryUpdate
-    payload = {"label": "Push Lap"} 
-    
+    payload = {"label": "Push Lap"}
+
     resp = client.put("/api/v1/lap_summaries?driver_number=1", json=payload)
-    assert resp.status_code == 200
+    
+    assert resp.status_code == 200 # Or whatever your assert is!
 
 # 4. Test the DELETE endpoint (Deletes a summary)
 @patch("routers.lap_summary.lap_service.delete_lap_summaries")

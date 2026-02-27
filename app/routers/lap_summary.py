@@ -52,11 +52,22 @@ def import_lap_summaries(
             session_key=session_key,
             year=year, location=location, session_name=session_name,
             driver_number=driver_number, lap_number=lap["lap_number"],
-            lap_duration=lap.get("lap_duration"), max_speed_kph=lap.get("st_speed"),
-            avg_speed_kph=None, i1_speed=lap.get("i1_speed"),
-            i2_speed=lap.get("i2_speed"), st_speed=lap.get("st_speed"), label=None,
+            lap_duration=lap.get("lap_duration"), 
+            
+            # --- MAP THE NEW DATA HERE ---
+            duration_sector_1=lap.get("duration_sector_1"),
+            duration_sector_2=lap.get("duration_sector_2"),
+            duration_sector_3=lap.get("duration_sector_3"),
+            is_pit_out_lap=lap.get("is_pit_out_lap", False),
+            is_pit_in_lap=lap.get("is_pit_in_lap", False),
+            
+            max_speed_kph=lap.get("st_speed"), # Assuming st_speed acts as max_speed
+            avg_speed_kph=None, 
+            i1_speed=lap.get("i1_speed"),
+            i2_speed=lap.get("i2_speed"), 
+            st_speed=lap.get("st_speed"), 
+            label=None,
         )
-        # Pass the current_user.id down to the service!
         lap_service.create_lap_summary(db, lap_in, owner_id=current_user.id)
         imported_count += 1
 
