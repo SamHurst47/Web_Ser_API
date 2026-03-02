@@ -16,59 +16,85 @@ The API is currently deployed on **Render** and can be accessed via the followin
 
 Note on Calling Endpoints: To call specific endpoints (e.g., /api/v1/analytics/true-pace), append the endpoint path to the Base Production URL as detailed in the Swagger or Redoc documentation above.
 
-**🛠 Local Setup Instructions**
--------------------------------
+** # 🛠 Local Setup Instructions **
+---------------------------------
 
-### **1\. Initialize Environment**
+This is for development purposes only and should not be followed unless you have access to the connection string for the database.
+
+### **1. Initialise Environment**
 
 Create and activate a virtual environment to manage dependencies:
 
-Bash
 
-\# Create the environmentpython3 -m venv venv# Activate (macOS/Linux)source venv/bin/activate# Activate (Windows)# venv\\Scripts\\activate
+Create the environment
+```
+python3 -m venv venv
+```
 
-### **2\. Install Dependencies**
+Activate (macOS/Linux)
+```
+source venv/bin/activate
+```
 
-Bash
+Activate (Windows)
+```
+venv\Scripts\activate
+```
 
+
+***
+
+### **2. Install Dependencies**
+
+```
 pip install -r requirements.txt
+```
 
-### **3\. Environment Configuration**
 
-Create a .env file in the root directory. This is required for both the application and the testing suite to communicate with the database and handle security.
+***
 
-Bash
+### **3. Environment Configuration**
 
-DATABASE\_URL=postgresql://user:password@azure-host:5432/dbnameSECRET\_KEY=your\_super\_secret\_jwt\_keyALGORITHM=HS256ACCESS\_TOKEN\_EXPIRE\_MINUTES=30
+Create a `.env` file in the root directory.
+This file is required for both the application and the testing suite to connect to the database and handle security.
 
-**🧪 Testing Suite**
---------------------
+```
+DATABASE_URL=InsertURLHere
+```
 
-The project uses **Pytest** for automated unit and integration testing. These tests simulate a client to verify endpoint functionality and database persistence.
+
+***
+
+# 🧪 Testing Suite
+
+The project uses **Pytest** for automated unit and integration testing.
+These tests simulate a client to verify endpoint functionality and database persistence.
 
 ### **To Run All Tests:**
 
-Ensure your virtual environment is active and run:
+Ensure your virtual environment is active and running:
 
-Bash
-
+```
 pytest
+```
+
 
 ### **To Run with Verbose Output:**
 
-Bash
-
+```
 pytest -v
+```
 
-**🚀 Running the Local Server**
--------------------------------
+
+***
+
+# 🚀 Running the Local Server
 
 To start the API locally for development:
 
-Bash
-
+```
 uvicorn main:app --reload
-
+```
 Once started, you can access the local docs at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 -------------------------------
