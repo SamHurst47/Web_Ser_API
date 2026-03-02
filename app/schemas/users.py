@@ -6,10 +6,12 @@ class UserCreate(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {
-                "email": "lewis.hamilton@mercedes.com",
-                "password": "SuperSecretPassword123!"
-            }
+            "examples": [
+                {
+                    "email": "lewis.hamilton@mercedes.com",
+                    "password": "SuperSecretPassword123!"
+                }
+            ]
         }
     )
 
@@ -20,22 +22,26 @@ class UserRead(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
-            "example": {
-                "id": 1,
-                "email": "lewis.hamilton@mercedes.com"
-            }
+            "examples": [  
+                {
+                    "id": 1,
+                    "email": "lewis.hamilton@mercedes.com"
+                }
+            ]
         }
     )
 
 class Token(BaseModel):
     access_token: str = Field(..., description="The JWT access token used for Bearer authentication")
-    token_type: str = Field(..., description="The type of token (typically 'bearer')", examples="bearer")
+    token_type: str = Field(..., description="The type of token (typically 'bearer')", examples=["bearer"])
 
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {
-                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                "token_type": "bearer"
-            }
+            "examples": [ 
+                {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "token_type": "bearer"
+                }
+            ]
         }
     )
