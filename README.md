@@ -1,85 +1,102 @@
-# Individual Web Services API Development Project
-## F1 Telemetry & Performance Insights API
+**TimeSlice: F1 Telemetry & Performance Insights API**
+======================================================
 
-## 1. Create Virtual Environment
+An N-tier asynchronous Python API built with FastAPI, SQLAlchemy, and Pydantic to transform raw OpenF1 telemetry into actionable racing insights.
 
+**🏁 Remote Access (Production)**
+---------------------------------
+
+The API is currently deployed on **Render** and can be accessed via the following links:
+
+*   **Production URL:** [https://web-ser-api.onrender.com](https://web-ser-api.onrender.com) 
+    
+*   **Interactive Documentation (Swagger):** [https://web-ser-api.onrender.com/docs](https://www.google.com/search?q=https://web-ser-api.onrender.com/docs)
+    
+*   **Redoc Documentation:** [https://web-ser-api.onrender.com/redoc](https://www.google.com/search?q=https://web-ser-api.onrender.com/redoc)
+
+Note on Calling Endpoints: To call specific endpoints (e.g., /api/v1/analytics/true-pace), append the endpoint path to the Base Production URL as detailed in the Swagger or Redoc documentation above.
+
+** # 🛠 Local Setup Instructions **
+---------------------------------
+
+This is for development purposes only and should not be followed unless you have access to the connection string for the database.
+
+### **1. Initialise Environment**
+
+Create and activate a virtual environment to manage dependencies:
+
+
+Create the environment
 ```
 python3 -m venv venv
 ```
 
-## 2. Activate Virtual Environment
-
+Activate (macOS/Linux)
 ```
 source venv/bin/activate
 ```
 
-## 3. Install Requirements
+Activate (Windows)
+```
+venv\Scripts\activate
+```
+
+
+***
+
+### **2. Install Dependencies**
 
 ```
 pip install -r requirements.txt
 ```
 
-## 5. Deactivate Virtual Environment
+
+***
+
+### **3. Environment Configuration**
+
+Create a `.env` file in the root directory.
+This file is required for both the application and the testing suite to connect to the database and handle security.
 
 ```
-deactivate
+DATABASE_URL=InsertURLHere
 ```
 
-## 6. To Run
+
+***
+
+# 🧪 Testing Suite
+
+The project uses **Pytest** for automated unit and integration testing.
+These tests simulate a client to verify endpoint functionality and database persistence.
+
+### **To Run All Tests:**
+
+Ensure your virtual environment is active and running:
+
+```
+pytest
+```
+
+
+### **To Run with Verbose Output:**
+
+```
+pytest -v
+```
+
+
+***
+
+# 🚀 Running the Local Server
+
+To start the API locally for development:
 
 ```
 uvicorn main:app --reload
 ```
-## 7. Open in Browser 
-Normal Mode
-```
-http://127.0.0.1:8000
-```
-Testing mode 
-```
-http://127.0.0.1:8000/docs#/
-```
----
-## Project Requirements and Deliverables (Will move to mroe apporate part of github when nessecary)
+Once started, you can access the local docs at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-### 1.1 Exceptional API Functionality & Implementation
-To score 80–100, API should demonstrate:
+-------------------------------
 
-- [ ] Exemplary code quality and architecture (modular, clean, advanced structure)
-- [ ] Advanced security implementation (e.g., JWT auth, role-based access, rate limiting) 
-- [ ] Comprehensive testing suite (unit tests + integration tests)
-- [ ] Creative data model and API design — not basic CRUD only 
-- [ ] Novel data integration or feature set (especially for marks 90–100) 
-- [ ] Research-driven or cutting‑edge technologies (e.g., modern architectures, GraphQL justification, MCP compatibility, async design) 
-
-### 1.2 Documentation
-Your documentation must be:
-
-Complete, clear, beautiful to read, and professional-quality.
-For 90–100: Publication-quality documentation (academic-level polish) 
-
-- [ ] API docs (Swagger/Postman/Markdown PDF)
-- [ ] Technical report (maximum 5 pages) with:
-  - Clear justification of stack choices
-  - Challenges, testing, limitations
-  - Future improvements
-  - A thoughtful GenAI usage declaration (failure to include = Fail)
-
-### 1.3 Version Control & Deployment
-
-For 80–100, deployment should be robust, stable, and secure.
-
-- [ ] Strong version control discipline (regular, meaningful commits) 
-- [ ] Professional deployment (hosting on high‑quality environment, not just PythonAnywhere) for 70+ marks
-
-### 1.4 Creativity and GenAI Usage
-
-80–89: High‑level use of GenAI for creativity and solution exploration (not just debugging).
-90–100: GenAI is used creatively to explore alternatives, cutting-edge designs, or re‑imagine solutions.
-
-(Created using GEN AI, then refined)
-
-
-
-
-
+(ReadMe Created Using GenAI as in GenAI declaration)
