@@ -2,37 +2,46 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 import requests  
-from services.api_converter import get_openf1_session_keys 
 
 from db import get_db
-from models import Users # Import the User model
-from services.dependencies import get_current_user # Import our new security lock!
-from schemas.lap_summary import LapSummaryCreate, LapSummaryUpdate, LapSummaryRead
+from models import Users 
+from services.dependencies import get_current_user 
+from schemas.lap_summary import LapSummaryCreate, LapSummaryUpdate, LapSummaryRead, ImportResponse
 from services import lap_summary as lap_service
+from services.api_converter import get_openf1_session_keys 
 
-router = APIRouter(prefix="/api/v1/lap_summaries", tags=["lap_summaries"])
+router = APIRouter(prefix="/api/v1/lap_summaries", tags=["Lap Summaries"])
 
-@router.post("/import_from_openf1", status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/import_from_openf1", 
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=ImportResponse,
+    summary="Import Telemetry from OpenF1",
+    description="""
+Fetches lap data from the OpenF1 API and saves it to the local database. 
+You can provide a specific Session Key or use the Year/Location/Session name 
+to automatically find the correct race session.
+    """
+)
 def import_lap_summaries(
-    driver_number: int,
-    year: Optional[int] = Query(None),
-    location: Optional[str] = Query(None),
-    session_name: Optional[str] = Query(None),
-    session_key: Optional[int] = Query(None),
+    driver_number: int = Query(..., description="FIA Driver Number", examples=44),
+    year: Optional[int] = Query(None, description="The four-digit race year", examples=2023),
+    location: Optional[str] = Query(None, description="Grand Prix location", examples="Belgium"),
+    session_name: Optional[str] = Query(None, description="Session type (Race, Qualifying, P1)", examples="Race"),
+    session_key: Optional[int] = Query(None, description="Direct OpenF1 Session Key", examples=9141),
     db: Session = Depends(get_db),
-    current_user: Users = Depends(get_current_user) # <-- Lock added!
+    current_user: Users = Depends(get_current_user)
 ):
-    # Sanitize inputs
     if location: location = location.strip()
     if session_name: session_name = session_name.strip()
 
     if year is not None and location is not None and session_name is not None:
         keys = get_openf1_session_keys(year, location, session_name)
         if keys is None:
-            raise HTTPException(status_code=422, detail="Invalid session input")
+            raise HTTPException(status_code=422, detail="Invalid session parameters provided")
         session_key = keys["session_key"]
     elif not session_key:
-        raise HTTPException(400, "Provide session_key OR (year+location+session_name)")
+        raise HTTPException(400, "Must provide session_key OR year, location, and session_name")
     
     try:
         resp = requests.get(
@@ -42,7 +51,7 @@ def import_lap_summaries(
         )
         resp.raise_for_status()
     except requests.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"OpenF1 fetch failed: {e}")
+        raise HTTPException(status_code=502, detail=f"External API communication failure")
 
     laps = resp.json()
     imported_count = 0
@@ -50,18 +59,18 @@ def import_lap_summaries(
     for lap in laps:
         lap_in = LapSummaryCreate(
             session_key=session_key,
-            year=year, location=location, session_name=session_name,
-            driver_number=driver_number, lap_number=lap["lap_number"],
+            year=year, 
+            location=location, 
+            session_name=session_name,
+            driver_number=driver_number, 
+            lap_number=lap["lap_number"],
             lap_duration=lap.get("lap_duration"), 
-            
-            # --- MAP THE NEW DATA HERE ---
             duration_sector_1=lap.get("duration_sector_1"),
             duration_sector_2=lap.get("duration_sector_2"),
             duration_sector_3=lap.get("duration_sector_3"),
             is_pit_out_lap=lap.get("is_pit_out_lap", False),
             is_pit_in_lap=lap.get("is_pit_in_lap", False),
-            
-            max_speed_kph=lap.get("st_speed"), # Assuming st_speed acts as max_speed
+            max_speed_kph=lap.get("st_speed"), 
             avg_speed_kph=None, 
             i1_speed=lap.get("i1_speed"),
             i2_speed=lap.get("i2_speed"), 
@@ -73,13 +82,18 @@ def import_lap_summaries(
 
     return {"imported": imported_count, "session_key": session_key}
 
-@router.get("", response_model=List[LapSummaryRead])
+@router.get(
+    "", 
+    response_model=List[LapSummaryRead],
+    summary="List Saved Lap Summaries",
+    description="Retrieves a list of lap summaries owned by the authenticated user, filtered by session or driver."
+)
 def list_lap_summaries(
-    session_key: Optional[int] = Query(None),
-    year: Optional[int] = Query(None),
-    location: Optional[str] = Query(None),
-    session_name: Optional[str] = Query(None),
-    driver_number: Optional[int] = Query(None),
+    session_key: Optional[int] = Query(None, examples=9141),
+    year: Optional[int] = Query(None, examples=2023),
+    location: Optional[str] = Query(None, examples="Belgium"),
+    session_name: Optional[str] = Query(None, examples="Race"),
+    driver_number: Optional[int] = Query(None, examples=44),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user) 
 ):
@@ -87,14 +101,19 @@ def list_lap_summaries(
         db, current_user.id, session_key, None, year, location, session_name, driver_number
     )
 
-@router.put("", response_model=List[LapSummaryRead])
+@router.put(
+    "", 
+    response_model=List[LapSummaryRead],
+    summary="Update Existing Summaries",
+    description="Updates metadata or labels for a set of laps filtered by driver and session criteria."
+)
 def update_lap_summaries(
-    driver_number: int,
-    lap_update: LapSummaryUpdate,
-    session_key: Optional[int] = Query(None),
-    year: Optional[int] = Query(None),
-    location: Optional[str] = Query(None),
-    session_name: Optional[str] = Query(None),
+    driver_number: int = Query(..., examples=44),
+    lap_update: LapSummaryUpdate = None,
+    session_key: Optional[int] = Query(None, examples=9141),
+    year: Optional[int] = Query(None, examples=2023),
+    location: Optional[str] = Query(None, examples="Belgium"),
+    session_name: Optional[str] = Query(None, examples="Race"),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user)
 ):
@@ -102,16 +121,21 @@ def update_lap_summaries(
         db, current_user.id, session_key, None, year, location, session_name, driver_number, lap_update
     )
     if not updated:
-        raise HTTPException(status_code=404, detail="No laps matched filters")
+        raise HTTPException(status_code=404, detail="No matching laps found to update")
     return updated
 
-@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "", 
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete Summaries",
+    description="Permanently removes filtered lap summaries from the user's account."
+)
 def delete_lap_summaries(
-    driver_number: int,
-    session_key: Optional[int] = Query(None),
-    year: Optional[int] = Query(None),
-    location: Optional[str] = Query(None),
-    session_name: Optional[str] = Query(None),
+    driver_number: int = Query(..., examples=44),
+    session_key: Optional[int] = Query(None, examples=9141),
+    year: Optional[int] = Query(None, examples=2023),
+    location: Optional[str] = Query(None, examples="Belgium"),
+    session_name: Optional[str] = Query(None, examples="Race"),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user) 
 ):
@@ -119,5 +143,5 @@ def delete_lap_summaries(
         db, current_user.id, session_key, None, year, location, session_name, driver_number
     )
     if count == 0:
-        raise HTTPException(status_code=404, detail="No laps matched filters")
+        raise HTTPException(status_code=404, detail="No matching laps found to delete")
     return None

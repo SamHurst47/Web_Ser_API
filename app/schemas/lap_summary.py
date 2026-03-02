@@ -27,6 +27,10 @@ class LapSummaryBase(BaseModel):
     st_speed: Optional[float] = None
     label: Optional[str] = None
 
+class ImportResponse(BaseModel):
+    imported: int = Field(..., description="The number of laps successfully saved", examples=44)
+    session_key: int = Field(..., description="The OpenF1 Session Key used for the import", examples=9141)
+
 class LapSummaryCreate(LapSummaryBase):
     pass
 
