@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 
 # Configuration
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = "https://web-ser-api.onrender.com"
 
 st.set_page_config(page_title="TimeSlice F1 Analytics", layout="wide")
 st.title("🏎️ TimeSlice: F1 Performance Dashboard")

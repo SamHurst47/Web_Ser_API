@@ -4,6 +4,7 @@ from routers import lap_summary as lap_router
 from routers import users as account_router
 from routers import analytics as analytics_router
 Base.metadata.create_all(bind=engine)
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="TimeSlice F1 API",
@@ -21,3 +22,11 @@ This API is designed to bridge the gap between raw track data and actionable rac
 app.include_router(account_router.router)
 app.include_router(lap_router.router)
 app.include_router(analytics_router.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For testing, allows all. For production, use your specific frontend URL.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
