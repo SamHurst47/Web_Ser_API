@@ -73,3 +73,7 @@ uvloop
 watchfiles
 websockets
 zipp
+streamlit
+pandas
+plotly
+requests
