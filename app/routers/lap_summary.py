@@ -50,8 +50,9 @@ def import_lap_summaries(
             timeout=10,
         )
         resp.raise_for_status()
-    except requests.RequestException as e:
-        raise HTTPException(status_code=502, detail=f"External API communication failure")
+    except Exception as e:
+        # This is the "Safety Net" that returns the 502
+        raise HTTPException(status_code=502, detail=f"OpenF1 fetch failed: {e}")
 
     laps = resp.json()
     imported_count = 0
