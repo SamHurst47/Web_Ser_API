@@ -17,31 +17,29 @@ router = APIRouter(prefix="/api/v1/lap_summaries", tags=["Lap Summaries"])
     status_code=status.HTTP_202_ACCEPTED,
     response_model=ImportResponse,
     summary="Import Telemetry from OpenF1",
-    description="""
-Fetches lap data from the OpenF1 API and saves it to the local database. 
-You can provide a specific Session Key or use the Year/Location/Session name 
-to automatically find the correct race session.
-    """
+    description="Fetches lap data from the OpenF1 API and saves it to the local database."
 )
 def import_lap_summaries(
-    driver_number: int = Query(..., description="FIA Driver Number", examples=44),
-    year: Optional[int] = Query(None, description="The four-digit race year", examples=2023),
-    location: Optional[str] = Query(None, description="Grand Prix location", examples="Belgium"),
-    session_name: Optional[str] = Query(None, description="Session type (Race, Qualifying, P1)", examples="Race"),
-    session_key: Optional[int] = Query(None, description="Direct OpenF1 Session Key", examples=9141),
+    driver_number: int = Query(..., description="FIA Driver Number"),
+    year: Optional[int] = Query(None),
+    location: Optional[str] = Query(None),
+    session_name: Optional[str] = Query(None),
+    session_key: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: Users = Depends(get_current_user)
 ):
-    if location: location = location.strip()
-    if session_name: session_name = session_name.strip()
+    if location: 
+        location = location.strip()
+    if session_name: 
+        session_name = session_name.strip()
 
-    if year is not None and location is not None and session_name is not None:
+    if year and location and session_name:
         keys = get_openf1_session_keys(year, location, session_name)
         if keys is None:
-            raise HTTPException(status_code=422, detail="Invalid session parameters provided")
+            raise HTTPException(status_code=422, detail="Invalid session parameters")
         session_key = keys["session_key"]
     elif not session_key:
-        raise HTTPException(400, "Must provide session_key OR year, location, and session_name")
+        raise HTTPException(status_code=400, detail="Missing session identifiers")
     
     try:
         resp = requests.get(
@@ -51,32 +49,40 @@ def import_lap_summaries(
         )
         resp.raise_for_status()
     except Exception as e:
-        # This is the "Safety Net" that returns the 502
-        raise HTTPException(status_code=502, detail=f"OpenF1 fetch failed: {e}")
+        raise HTTPException(status_code=502, detail=f"OpenF1 connection error: {e}")
 
     laps = resp.json()
+    if not laps:
+        return {"imported": 0, "session_key": session_key}
+
     imported_count = 0
-    
     for lap in laps:
+        current_year = year
+        if current_year is None and lap.get("date"):
+            try:
+                current_year = int(lap["date"][:4])
+            except (ValueError, TypeError):
+                current_year = None
+
         lap_in = LapSummaryCreate(
             session_key=session_key,
-            year=year, 
-            location=location, 
+            year=current_year,
+            location=location,
             session_name=session_name,
-            driver_number=driver_number, 
-            lap_number=lap["lap_number"],
-            lap_duration=lap.get("lap_duration"), 
+            driver_number=driver_number,
+            lap_number=lap.get("lap_number"),
+            lap_duration=lap.get("lap_duration"),
             duration_sector_1=lap.get("duration_sector_1"),
             duration_sector_2=lap.get("duration_sector_2"),
             duration_sector_3=lap.get("duration_sector_3"),
             is_pit_out_lap=lap.get("is_pit_out_lap", False),
             is_pit_in_lap=lap.get("is_pit_in_lap", False),
-            max_speed_kph=lap.get("st_speed"), 
-            avg_speed_kph=None, 
+            max_speed_kph=lap.get("st_speed"),
+            avg_speed_kph=None,
             i1_speed=lap.get("i1_speed"),
-            i2_speed=lap.get("i2_speed"), 
-            st_speed=lap.get("st_speed"), 
-            label=None,
+            i2_speed=lap.get("i2_speed"),
+            st_speed=lap.get("st_speed"),
+            label=None
         )
         lap_service.create_lap_summary(db, lap_in, owner_id=current_user.id)
         imported_count += 1
