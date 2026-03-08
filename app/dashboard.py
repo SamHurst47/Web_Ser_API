@@ -23,10 +23,20 @@ with st.sidebar:
         
         if st.button("Submit"):
             if mode == "Register":
-                reg_resp = requests.post(f"{API_BASE_URL}/api/v1/accounts/register", 
-                                        json={"email": user_email, "password": user_pass})
-                if reg_resp.status_code == 201: st.success("Account created! Switch to Login.")
-                else: st.error(f"Registration Failed: {reg_resp.json().get('detail')}")
+                reg_resp = requests.post(
+                    f"{API_BASE_URL}/api/v1/accounts/register", 
+                    json={"email": user_email, "password": user_pass}
+                )
+                # Check if the response is actually JSON before parsing
+                if reg_resp.status_code == 201: 
+                    st.success("Account created! Switch to Login.")
+                else:
+                    try:
+                        error_detail = reg_resp.json().get('detail', 'Unknown Error')
+                        st.error(f"Registration Failed: {error_detail}")
+                    except Exception:
+                        # If it's not JSON, show the raw text or status code
+                        st.error(f"Server Error ({reg_resp.status_code}): The API didn't return a valid response.")
             else:
                 login_resp = requests.post(f"{API_BASE_URL}/api/v1/accounts/login", 
                                           data={"username": user_email, "password": user_pass})

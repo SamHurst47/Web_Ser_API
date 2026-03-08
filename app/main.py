@@ -5,8 +5,16 @@ from routers import users as account_router
 from routers import analytics as analytics_router
 Base.metadata.create_all(bind=engine)
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create tables on startup
+    Base.metadata.create_all(bind=engine)
+    yield
 
 app = FastAPI(
+    lifespan=lifespan,
     title="TimeSlice F1 API",
     description="""
 Welcome to **TimeSlice**, a high-performance analytical engine for Formula 1 telemetry. 
