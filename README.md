@@ -8,11 +8,15 @@ An N-tier asynchronous Python API built with FastAPI, SQLAlchemy, and Pydantic t
 
 The API is currently deployed on **Render** and can be accessed via the following links:
 
-*   **Production URL:** [https://web-ser-api.onrender.com](https://web-ser-api.onrender.com) 
+*   **Production URL:** [https://web-ser-api.onrender.com](https://web-ser-api.onrender.com)
+
+*   **PDF API  Documentation** [F1APIDocumentaion.pdf](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/F1APIDocumentaion.pdf) Interactive documentation is also available via the links below.
     
 *   **Interactive Documentation (Swagger):** [https://web-ser-api.onrender.com/docs](https://www.google.com/search?q=https://web-ser-api.onrender.com/docs)
     
 *   **Redoc Documentation:** [https://web-ser-api.onrender.com/redoc](https://www.google.com/search?q=https://web-ser-api.onrender.com/redoc)
+
+*   **Presentation Slides** 
 
 Note on Calling Endpoints: To call specific endpoints (e.g., /api/v1/analytics/true-pace), append the endpoint path to the Base Production URL as detailed in the Swagger or Redoc documentation above.
 
