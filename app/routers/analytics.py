@@ -1,12 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from enum import Enum
 
 from db import get_db
 from models import Users
 from services.dependencies import get_current_user
-from schemas.analytics import PaceTrendResponse, IdealLapsResponse, IdealLapCompare, OverallIdealLap, TruePaceCompare, DriverSessionTrend
+from schemas.analytics import (
+    PaceTrendResponse, IdealLapsResponse, IdealLapCompare, 
+    OverallIdealLap, TruePaceCompare, DriverSessionTrend
+)
 from services import analytics as analytics_service
+
+# Define Enum for session consistency across routers
+class SessionName(str, Enum):
+    race = "Race"
+    qualifying = "Qualifying"
+    sprint = "Sprint"
+    p1 = "Practice 1"
+    p2 = "Practice 2"
+    p3 = "Practice 3"
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Data Analytics"])
 
@@ -17,14 +30,15 @@ router = APIRouter(prefix="/api/v1/analytics", tags=["Data Analytics"])
     description="Returns a chronological list of lap times for one or more drivers to visualize pace evolution over a session."
 )
 def get_pace_trend(
-    year: int = Query(..., examples=2023), 
-    location: str = Query(..., examples="Belgium"),
-    session_name: Optional[str] = Query(None, examples="Race"),
-    driver_numbers: Optional[List[int]] = Query(None, examples=[44, 63]),
+    year: int = Query(..., description="The race year", examples=[2023]), 
+    location: str = Query(..., description="The circuit location", examples=["Belgium", "Monza"]),
+    session_name: Optional[SessionName] = Query(None, description="Filter by session type"),
+    driver_numbers: Optional[List[int]] = Query(None, description="List of driver numbers", examples=[44, 63, 1]),
     db: Session = Depends(get_db), 
     current_user: Users = Depends(get_current_user)
 ):
-    laps = analytics_service.get_pace_trend(db, current_user.id, year, location, session_name, driver_numbers)
+    sess_str = session_name.value if session_name else None
+    laps = analytics_service.get_pace_trend(db, current_user.id, year, location, sess_str, driver_numbers)
     
     grouped_data = {}
     for lap in laps:
@@ -39,20 +53,18 @@ def get_pace_trend(
     "/ideal-laps", 
     response_model=IdealLapsResponse,
     summary="Theoretical Ideal Lap Analysis",
-    description="""
-Calculates the 'Ideal Lap' (the sum of the best individual sectors) for the session as a whole 
-and for individual drivers. This identifies the 'Potential Improvement' left on the table.
-    """
+    description="Calculates the 'Ideal Lap' (sum of best sectors) vs 'Actual Best' to identify potential improvement."
 )
 def get_ideal_laps(
-    year: int = Query(..., examples=2023), 
-    location: str = Query(..., examples="Belgium"),
-    session_name: Optional[str] = Query(None, examples="Race"),
+    year: int = Query(..., examples=[2023]), 
+    location: str = Query(..., examples=["Belgium"]),
+    session_name: Optional[SessionName] = Query(None),
     driver_numbers: Optional[List[int]] = Query(None, examples=[4, 81]),
     db: Session = Depends(get_db), 
     current_user: Users = Depends(get_current_user)
 ):
-    overall_results = analytics_service.get_overall_ideal_laps(db, current_user.id, year, location, session_name)
+    sess_str = session_name.value if session_name else None
+    overall_results = analytics_service.get_overall_ideal_laps(db, current_user.id, year, location, sess_str)
     overall_laps = []
     for row in overall_results:
         if row.best_s1 and row.best_s2 and row.best_s3:
@@ -64,7 +76,7 @@ def get_ideal_laps(
                 ideal_lap_time=round(row.best_s1 + row.best_s2 + row.best_s3, 3)
             ))
 
-    driver_results = analytics_service.get_ideal_laps_grouped(db, current_user.id, year, location, session_name, driver_numbers)
+    driver_results = analytics_service.get_ideal_laps_grouped(db, current_user.id, year, location, sess_str, driver_numbers)
     driver_laps = []
     for row in driver_results:
         if row.best_s1 and row.best_s2 and row.best_s3:
@@ -83,17 +95,18 @@ def get_ideal_laps(
     "/true-pace", 
     response_model=List[TruePaceCompare],
     summary="True Average Pace",
-    description="Calculates the average pace per driver, filtering out non-representative laps (pits/out-laps) to show pure performance."
+    description="Calculates average pace per driver, excluding pit and out-laps for representative performance."
 )
 def get_true_pace(
-    year: int = Query(..., examples=2023), 
-    location: str = Query(..., examples="Belgium"),
-    session_name: Optional[str] = Query(None, examples="Race"),
+    year: int = Query(..., examples=[2023]), 
+    location: str = Query(..., examples=["Belgium"]),
+    session_name: Optional[SessionName] = Query(None),
     driver_numbers: Optional[List[int]] = Query(None, examples=[1, 11]),
     db: Session = Depends(get_db), 
     current_user: Users = Depends(get_current_user)
 ):
-    results = analytics_service.get_true_pace_grouped(db, current_user.id, year, location, session_name, driver_numbers)
+    sess_str = session_name.value if session_name else None
+    results = analytics_service.get_true_pace_grouped(db, current_user.id, year, location, sess_str, driver_numbers)
     return [
         TruePaceCompare(
             driver_number=row.driver_number, session_name=row.session_name,
