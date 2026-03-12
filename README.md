@@ -3,6 +3,12 @@
 
 An N-tier asynchronous Python API built with FastAPI, SQLAlchemy, and Pydantic to transform raw OpenF1 telemetry into actionable racing insights.
 
+*   **PDF API  Documentation** [F1APIDocumentaion.pdf](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/F1APIDocumentaion.pdf) Interactive documentation is also available via the links below.
+    
+*   **Technical Report:** [Technical Report](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/Deliverable/Technical%20Report.pdf)
+
+*   **Presentation Slides** 
+
 **🏁 Remote Access (Production)**
 ---------------------------------
 
@@ -10,13 +16,11 @@ The API is currently deployed on **Render** and can be accessed via the followin
 
 *   **Production URL:** [https://web-ser-api.onrender.com](https://web-ser-api.onrender.com)
 
-*   **PDF API  Documentation** [F1APIDocumentaion.pdf](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/F1APIDocumentaion.pdf) Interactive documentation is also available via the links below.
-    
 *   **Interactive Documentation (Swagger):** [https://web-ser-api.onrender.com/docs](https://www.google.com/search?q=https://web-ser-api.onrender.com/docs)
     
 *   **Redoc Documentation:** [https://web-ser-api.onrender.com/redoc](https://www.google.com/search?q=https://web-ser-api.onrender.com/redoc)
 
-*   **Presentation Slides** 
+
 
 Note on Calling Endpoints: To call specific endpoints (e.g., /api/v1/analytics/true-pace), append the endpoint path to the Base Production URL as detailed in the Swagger or Redoc documentation above.
 
