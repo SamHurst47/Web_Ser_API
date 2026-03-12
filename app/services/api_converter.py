@@ -23,8 +23,7 @@ def get_openf1_session_keys(
             
         session = data[0]  # Take first match
         return {
-            "session_key": session["session_key"],
-            "meeting_key": session.get("meeting_key")  # Optional field
+            "session_key": session["session_key"]
         }
         
     except (HTTPError, URLError) as e:
