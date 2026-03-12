@@ -7,7 +7,9 @@ An N-tier asynchronous Python API built with FastAPI, SQLAlchemy, and Pydantic t
     
 *   **Technical Report:** [Technical Report](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/Deliverable/Technical%20Report.pdf)
 
-*   **Presentation Slides** 
+*   **Presentation Slides**
+
+*   **AI Documentation** [AI Documentation](https://github.com/SamHurst47/Web_Ser_API/tree/main/Documentation/AIUsage) 
 
 **🏁 Remote Access (Production)**
 ---------------------------------
