@@ -5,7 +5,7 @@ An N-tier asynchronous Python API built with FastAPI, SQLAlchemy, and Pydantic t
 
 *   **PDF API  Documentation** [F1APIDocumentaion.pdf](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/F1APIDocumentaion.pdf) Interactive documentation is also available via the links below.
     
-*   **Technical Report:** [Technical Report](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/Deliverable/Technical%20Report.pdf)
+*   **Technical Report:** [Technical Report](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/Technical%20Report.pdf)
 
 *   **Presentation Slides** [Presentation Slides](https://github.com/SamHurst47/Web_Ser_API/blob/main/Documentation/TimeSlice%20F1%20API%20SH.pptx)
 
